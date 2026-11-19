@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.2 - 2026-11-19
+
+- A Hebrew wizard for adding a topic with only a name and general description,
+  file drop, a Windows file picker, or direct copies into its draft folder.
+- Automatic description creation, safe file copies, and resumable local drafts.
+- The finish action prepares shared exam 1 through the existing source review
+  and visual reading pipeline before making the topic available to students.
+- Synthetic tests and an isolated wizard preview without Codex requests.
+
 ## 0.1.1 - 2026-11-19
 
 - Name and branding: **החתול הסקרן** (Curious Cat), with the slogan

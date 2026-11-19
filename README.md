@@ -6,7 +6,7 @@ A Windows learning app in Hebrew that uses Codex to turn school materials into e
 
 This repository contains application source, automated tests, UI artwork, JSON schemas, and the licensed PDFium runtime. It does **not** include school materials, generated exams, student records, interpreted-source caches, or local account configuration. These stay on your computer and are ignored by Git. Tests create synthetic fixtures in temporary folders.
 
-To build on 64-bit Windows with .NET Framework 4.8, run `./build.ps1 -Test` in PowerShell. The executable is created locally as `Education2k.exe`. The app creates the `מבחנים` (exams) and `תלמידים` (students) folders as needed. Add your own materials locally using the in-app guide. Exam generation and open-answer grading require an installed, signed-in Codex client; automated tests run without contacting Codex. PowerPoint/Word are needed to render Office documents with visuals; PDF and image inputs can be used instead.
+To build on 64-bit Windows with .NET Framework 4.8, run `./build.ps1 -Test` in PowerShell. The executable is created locally as `Education2k.exe`. The app creates the `מבחנים` (exams) and `תלמידים` (students) folders as needed. The **הוסף מבחן חדש** wizard accepts a name, a general description, and learning files, then prepares shared exam 1 before adding the topic to the student list. Unfinished drafts remain private in the local `_drafts` folder for retry or resume. Exam generation and open-answer grading require an installed, signed-in Codex client; automated tests run without contacting Codex. PowerPoint/Word are needed to render Office documents with visuals; PDF and image inputs can be used instead.
 
 The application version is recorded in `VERSION`, starting at `0.1.0` for the initial publication. Every upload requires explicit owner approval. Each approved publication increments only PATCH (`0.1.1`, then `0.1.2`, and so on); changing MAJOR or MINOR requires separate approval. Local edits, builds, and tests do not increment the version. See `AGENTS.md` for the publication policy and `Tools/bump-version.ps1` for the local version update helper.
 
@@ -23,6 +23,10 @@ privacy audit, Git publication and GitHub Release with a ZIP and SHA-256 checksu
 תוכנת Windows מקומית למבחנים ולתרגול בעברית. לפתיחה לוחצים פעמיים על `Education2k.exe` שבתיקיית הפרויקט. אין צורך בשרת או במפתח API. נדרשים Windows עם ‎.NET Framework 4.8, חיבור לאינטרנט ו־Codex שמחובר לחשבון ChatGPT בעל גישה מתאימה. בתפריט **פרטי החיבור** ניתן להתחבר ולבדוק את החיבור מחדש. הבדיקה כוללת תגובה אמיתית מהמודל; סימון התחברות בלבד אינו נחשב לחיבור זמין.
 
 ## שימוש
+
+כפתור **הוסף מבחן חדש** זמין גם לפני הזנת שם תלמיד. באשף מזינים שם ותיאור כללי בלבד. התיאור נשמר אוטומטית בקובץ `_describe.txt`; אין צורך בשדות נפרדים לכיתה או לעמודים. בשלב הבא גוררים קבצים לתוכנה, בוחרים אותם בחלון Windows או פותחים את תיקיית הטיוטה ומעתיקים אליה קבצים. הרשימה מתעדכנת גם כאשר מוסיפים חומר דרך סייר הקבצים. הקבצים המקוריים אינם משתנים; שמות זהים עם תוכן שונה מקבלים סיומת מספרית. הסרה מהרשימה מעבירה את עותק הטיוטה לתיקייה פנימית שאינה נקראת כחומר לימוד.
+
+במסך הסיכום לוחצים **סיום והוספת המבחן**. המערכת משתמשת בתהליך הקריאה והפענוח הרגיל, כולל מסך ההחלטה אם יש בעיות בחומר, ויוצרת את מבחן מספר 1. רק לאחר שמירה ואימות מוצלחים התיקייה עוברת ל־`מבחנים` והנושא זמין לתלמידים. ביטול או תקלה שומרים את הטיוטה, התיאור והקבצים בתיקיית `_drafts`, מחוץ לרשימת הנושאים; בפתיחה הבאה של האשף אפשר להמשיך. יש לגבות גם תיקייה זו אם רוצים להעביר טיוטות למחשב אחר. היא וחומריה מוחרגים מגיט. העזרה להוספה ידנית זמינה כקישור משני באשף.
 
 במסך הכניסה מוצג במרכז, מעל שדות השם, החתול הקורא וממצמץ מההנפשה שאושרה. ההנפשה פועלת בלולאה שקטה כל עוד מסך הכניסה מוצג, ונעצרת במעבר למסך אחר. אפשר להזין את השם מיד. אם ההנפשות כבויות בהגדרות Windows מוצג הפריים הראשון. כל פריימי ההנפשה מוטמעים בקובץ התוכנה, ללא צורך בקובצי תמונה חיצוניים או בהתקנה נוספת. ה־GIF המאושר שמור ב־`Assets/LogoAnimation/cat-reading.gif`; המרה מחדש לפריימים נעשית באמצעות `Tools/prepare-logo-animation.py` עם Pillow, ואינה נדרשת להפעלת התוכנה או לקימפול רגיל.
 
@@ -84,6 +88,8 @@ Codex רשאי לחפש חומר משלים ברשת ובאתרי משרד הח�
 חומרי המקור ותשובות נשלחים ל־OpenAI לפי תנאי החשבון; שם התלמיד אינו נכלל בבקשות הבדיקה. מפתחות וסיסמאות אינם נשמרים בפרויקט. אם Codex אינו מזוהה אפשר להגדיר משתנה סביבה `EDUCATION2K_CODEX` לנתיב המלא של `codex.exe`.
 
 ## קימפול ובדיקות
+
+הפרמטר `--preview-new-exam` פותח את האשף בתיקיית בדיקה חדשה ומבודדת תחת `Build`, עם מודל מדומה המסומן במפורש בממשק. הוא אינו פונה ל־Codex ואינו מעתיק חומרי בית ספר או תלמידים אמיתיים. לבחירת קובץ סינתטי אפשר להשתמש ב־`Build/wizard-demo-material.txt`. הבדיקות האוטומטיות מכסות שמירת טיוטה וחזרה אליה, יבוא קבצים וכפילויות, כשל וביטול יצירה, שינוי חומר תוך כדי הכנה, מניעת דריסת נושא קיים, ופרסום מבחן 1 יחד עם תמונותיו רק לאחר השלמה.
 
 הפרמטר `--test-live-progress` בודק זרם אירועים אמיתי של Codex עם בקשת בדיקה קצרה ושומר תוצאה ב־`Build/progress-live-test.txt`. הפרמטר `--preview-waiting` פותח את מסך ההמתנה על עותק נתונים ב־`Build/UiPreview2`, עם מודל מדומה שמסומן במפורש כתצוגת בדיקה. בדיקות ההתקדמות כוללות הפרדה בין קובצי ביניים למבחן, תצוגת עדכונים בזיכרון בלבד, ביטול המתנה לנעילה וסינון תוכן רגיש מהפריוויו.
 

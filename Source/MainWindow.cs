@@ -78,7 +78,7 @@ namespace Education2k
         static void Gap(Panel panel, int height = 14) { panel.Children.Add(new Border { Height = height }); }
         public MainWindow(Store store, string previewMode = null)
         {
-            this.store = store; codex = new CodexClient(store.Root); service = new ExamService(store, codex);
+            this.store = store; codex = new CodexClient(store.Root); service = new ExamService(store, codex); drafts = new ExamDrafts(store); wizardDemo = previewMode == "new-exam";
             Title = AppInfo.Name + " | " + AppInfo.Slogan; Width = 1180; Height = 840; MinWidth = 860; MinHeight = 620;
             using (var iconStream = typeof(MainWindow).Assembly.GetManifestResourceStream("Education2k.AppIcon.ico"))
             {
@@ -120,7 +120,7 @@ namespace Education2k
             historyButton = HeaderButton("ההישגים שלי", ShowHistory); historyButton.IsEnabled = false;
             tools.Children.Add(historyButton);
             var home = HeaderButton("המסך הראשי", delegate { if (student != null) { Save(); ShowModes(); } else ShowLogin(); }); tools.Children.Add(home);
-            var addExamHelp = HeaderButton("כיצד להוסיף מבחן חדש", ShowAddExamGuide, 14); tools.Children.Add(addExamHelp);
+            var addExamHelp = HeaderButton("הוסף מבחן חדש", ShowAddExamWizard, 14); tools.Children.Add(addExamHelp);
             var connectButton = HeaderButton("פרטי החיבור", ShowConnection); tools.Children.Add(connectButton);
             Grid.SetColumn(tools, 2); header.Children.Add(tools); layout.Children.Add(header);
             var scroll = new ScrollViewer { Content = body, Padding = new Thickness(32, 12, 32, 30) }; scroller = scroll;
@@ -137,6 +137,9 @@ namespace Education2k
             busy.Background = Brush("#F4F7F3"); busy.Visibility = Visibility.Collapsed;
             waitingView = new WaitingView(delegate { if (operation != null) operation.Cancel(); });
             busy.Child = waitingView; Grid.SetRow(busy, 1); shell.Children.Add(busy); Content = shell;
+            AllowDrop = true;
+            PreviewDragOver += delegate(object sender, DragEventArgs e) { if (e.Data.GetDataPresent(DataFormats.FileDrop)) { e.Effects = wizardVisible && wizardStep == 1 && operation == null ? DragDropEffects.Copy : DragDropEffects.None; e.Handled = true; } };
+            PreviewDrop += delegate(object sender, DragEventArgs e) { if (e.Data.GetDataPresent(DataFormats.FileDrop)) { e.Handled = true; ImportWizardFiles((string[])e.Data.GetData(DataFormats.FileDrop)); } };
             timer.Interval = TimeSpan.FromSeconds(1); timer.Tick += delegate { Tick(); }; timer.Start();
             autosave.Interval = TimeSpan.FromMilliseconds(900); autosave.Tick += delegate { if (dirty) { try { Save(); } catch (Exception e) { autosave.Stop(); Error(e); } } }; autosave.Start();
             Closing += delegate(object sender, System.ComponentModel.CancelEventArgs closing) { try { Save(); } catch (Exception e) { closing.Cancel = true; Error(new InvalidOperationException("לא ניתן לשמור את התשובות: " + e.Message)); return; } lifetime.Cancel(); if (operation != null) operation.Cancel(); };
@@ -144,6 +147,7 @@ namespace Education2k
             Loaded += async delegate {
                 if (previewMode != null)
                 {
+                    if (wizardDemo) { identity.Text = "תצוגת בדיקה · יצירת מבחן עם מודל מדומה"; connection.Text = "● תצוגת בדיקה · ללא פנייה ל־Codex"; ShowAddExamWizard(); return; }
                     student = store.Login("בדיקת", "ממשק"); identity.Text = "תצוגת בדיקה · " + student.FullName; historyButton.IsEnabled = true; topic = store.Topics().First();
                     if (previewMode == "waiting")
                     {
@@ -172,6 +176,7 @@ namespace Education2k
         }
         void Page(string title, string subtitle, Action render)
         {
+            wizardVisible = false;
             currentPage = render; inQuestion = false; notice.Visibility = Visibility.Collapsed; body.Children.Clear();
             scroller.ScrollToTop();
             body.Children.Add(Text(title, 32)); body.Children.Add(Text(subtitle, 17, "#596F76")); Gap(body);
@@ -213,6 +218,7 @@ namespace Education2k
         }
         void Save()
         {
+            FlushWizardDraft();
             if (student != null && attempt != null) store.Save(student, attempt);
             dirty = false;
         }
@@ -274,7 +280,7 @@ namespace Education2k
             try
             {
                 var topics = store.Topics(); var history = store.History(student);
-                if (topics.Count == 0) body.Children.Add(Card(Text("עדיין אין נושאים. יש להוסיף תיקייה וחומרי לימוד בתוך תיקיית „מבחנים”.")));
+                if (topics.Count == 0) body.Children.Add(Card(Text("עדיין אין נושאים. לוחצים על „הוסף מבחן חדש” למעלה ומוסיפים את חומרי הלימוד בכמה צעדים פשוטים.")));
                 foreach (var t in topics)
                 {
                     var p = Panel(); p.Children.Add(Text(t.Name, 24)); p.Children.Add(Text(t.Description));
@@ -468,6 +474,7 @@ namespace Education2k
         void Tick()
         {
             if (operation != null) waitingView.RefreshTimes();
+            WizardTick();
             if (attempt == null || attempt.FinishedUtc != null) { notice.Visibility = Visibility.Collapsed; return; }
             var started = DateTime.Parse(attempt.StartedUtc, null, DateTimeStyles.RoundtripKind);
             var elapsed = DateTime.UtcNow - started;

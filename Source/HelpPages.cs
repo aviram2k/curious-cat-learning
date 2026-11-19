@@ -28,7 +28,7 @@ namespace Education2k
         {
             if (currentPage == ShowAddExamGuide) return;
             Save(); Action back = currentPage;
-            Page("כיצד מוסיפים מבחן חדש?", "מכינים תיקייה עם חומרי הלימוד, והמערכת מכינה ממנה את השאלות. אפשר לעשות זאת בנחת, צעד אחר צעד.", ShowAddExamGuide);
+            Page("עזרה בהוספת חומרי לימוד", "האשף „הוסף מבחן חדש” מכין את התיקייה ואת קובץ התיאור עבורכם. ההסבר הבא מיועד למי שרוצה להכין תיקייה גם באופן ידני.", ShowAddExamGuide);
             var first = GuideStep(1, "פותחים את תיקיית המבחנים", "כל נושא מקבל תיקייה משלו בתוך התיקייה „מבחנים” של התוכנה. הכפתור הבא יפתח את המקום הנכון במחשב הזה.");
             first.Children.Add(Button("פתיחת תיקיית המבחנים", delegate {
                 try { Process.Start(new ProcessStartInfo { FileName = Path.Combine(store.Root, "מבחנים"), UseShellExecute = true }); }
@@ -47,7 +47,7 @@ namespace Education2k
             tree.Items.Add(root); second.Children.Add(new Border { Background = Brush("#F4F7F3"), CornerRadius = new CornerRadius(12), Padding = new Thickness(14), Child = tree });
             second.Children.Add(Text("כך נראית תיקייה לדוגמה. שמות קובצי החומר יכולים להיות בעברית.", 14, "#596F76")); body.Children.Add(Card(second));
 
-            var third = GuideStep(3, "כותבים תיאור קצר של המבחן", "בתוך תיקיית הנושא שומרים קובץ טקסט בשם המדויק שמופיע כאן. אפשר ליצור אותו בפנקס הרשימות. כותבים בו את הכיתה, הנושאים, המקורות ומה צריך לדעת למבחן.");
+            var third = GuideStep(3, "כותבים תיאור קצר של המבחן", "בתוך תיקיית הנושא שומרים קובץ טקסט בשם המדויק שמופיע כאן. אפשר ליצור אותו בפנקס הרשימות. מספיק תיאור כללי של נושא המבחן והחומר המצורף; אין צורך בפירוט נפרד של עמודים.");
             third.Children.Add(new TextBlock { Text = "_describe.txt", FlowDirection = FlowDirection.LeftToRight, HorizontalAlignment = HorizontalAlignment.Right, FontFamily = new FontFamily("Consolas"), FontSize = 21, Foreground = Brush("#176F65"), Margin = new Thickness(0, 0, 0, 12) });
             third.Children.Add(new Border { Background = Brush("#F4F7F3"), CornerRadius = new CornerRadius(12), Padding = new Thickness(18), Child = Text("דוגמה לתוכן התיאור:\nכיתה ח, היסטוריה — לידתה של אירופה.\nהחומר נמצא במצגת ובסיכום המצורפים.\nיש לכלול את נפילת רומא, ממלכת הפרנקים והתפשטות הנצרות.\nאין לכלול נושאים שלא מופיעים בחומר.", 16) });
             third.Children.Add(Text("שימו לב שהשם לא נשמר בטעות כ־_describe.txt.txt. בסייר הקבצים אפשר להציג את סיומות הקבצים כדי לבדוק זאת.", 15, "#596F76")); body.Children.Add(Card(third));
