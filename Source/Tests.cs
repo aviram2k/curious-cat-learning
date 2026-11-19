@@ -52,6 +52,10 @@ namespace Education2k
                 var store = new Store(temp); var topicFolder = Path.Combine(temp, "מבחנים", "מדעים"); Directory.CreateDirectory(topicFolder);
                 var input = Inputs.Hebrew(); input.FlowDirection = System.Windows.FlowDirection.LeftToRight; input.Text = "טקסט בעברית CO₂";
                 Assert(input.FlowDirection == System.Windows.FlowDirection.RightToLeft && input.TextAlignment == System.Windows.TextAlignment.Left, "Hebrew input restores RTL and logical-start alignment after keyboard direction changes");
+                var productInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(typeof(Program).Assembly.Location);
+                Assert(productInfo.ProductName == AppInfo.Name && productInfo.FileDescription == AppInfo.Name, "The Windows executable exposes the Curious Cat product name and description");
+                Assert(AppInfo.Version == File.ReadAllText(Path.Combine(sampleRoot, "VERSION")).Trim() && productInfo.FileVersion == AppInfo.Version + ".0", "The visible application version and Windows file version match the version file embedded at build time");
+                Assert(AppInfo.LastUpdated.ToString("yyyy-MM-dd'T'HH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture) == File.ReadAllText(Path.Combine(sampleRoot, "VERSION_DATE")).Trim(), "The displayed update date and time preserve the release timestamp and timezone rather than the launch time or file modification time");
                 File.WriteAllText(Path.Combine(topicFolder, "_describe.txt"), "תיאור בעברית", Encoding.UTF8);
                 File.WriteAllText(Path.Combine(topicFolder, "סיכום.txt"), "מים וחומר", Encoding.UTF8);
                 File.WriteAllText(Path.Combine(topicFolder, "_generated.tmp"), "ignored");

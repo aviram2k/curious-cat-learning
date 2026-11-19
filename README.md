@@ -1,10 +1,24 @@
-# Curious Cat Learning · לומדים
+# Curious Cat Learning · החתול הסקרן
+
+**למידה מתוך סקרנות**
 
 A Windows learning app in Hebrew that uses Codex to turn school materials into exams, quizzes, and guided practice, with feedback and student progress tracking. The interface supports Hebrew and right-to-left text.
 
 This repository contains application source, automated tests, UI artwork, JSON schemas, and the licensed PDFium runtime. It does **not** include school materials, generated exams, student records, interpreted-source caches, or local account configuration. These stay on your computer and are ignored by Git. Tests create synthetic fixtures in temporary folders.
 
 To build on 64-bit Windows with .NET Framework 4.8, run `./build.ps1 -Test` in PowerShell. The executable is created locally as `Education2k.exe`. The app creates the `מבחנים` (exams) and `תלמידים` (students) folders as needed. Add your own materials locally using the in-app guide. Exam generation and open-answer grading require an installed, signed-in Codex client; automated tests run without contacting Codex. PowerPoint/Word are needed to render Office documents with visuals; PDF and image inputs can be used instead.
+
+The application version is recorded in `VERSION`, starting at `0.1.0` for the initial publication. Every upload requires explicit owner approval. Each approved publication increments only PATCH (`0.1.1`, then `0.1.2`, and so on); changing MAJOR or MINOR requires separate approval. Local edits, builds, and tests do not increment the version. See `AGENTS.md` for the publication policy and `Tools/bump-version.ps1` for the local version update helper.
+
+Ready-to-run Windows packages are available on the repository's **Releases** page.
+Extract the entire ZIP to a writable folder and run `Education2k.exe`; keep its
+configuration, `Schemas` and `Native` folders alongside it. The package contains
+no school materials, exams, student records or account credentials. The app
+creates its local data folders when needed. See `CHANGELOG.md` for release notes.
+The owner's command **שחרר ריליס** authorizes one version update, tested build,
+privacy audit, Git publication and GitHub Release with a ZIP and SHA-256 checksum.
+
+`VERSION_DATE` stores the version's update timestamp in `yyyy-MM-ddTHH:mm:sszzz` format, including its UTC offset. The build embeds the version, timestamp, product name, and slogan in the executable. A small fixed strip at the top shows the version, date, and time on all screens, including exam preparation. Launching or copying the app does not change this timestamp. The approved version update helper records publication time in the Asia/Jerusalem timezone. The connection status is displayed in the fixed bottom bar.
 
 תוכנת Windows מקומית למבחנים ולתרגול בעברית. לפתיחה לוחצים פעמיים על `Education2k.exe` שבתיקיית הפרויקט. אין צורך בשרת או במפתח API. נדרשים Windows עם ‎.NET Framework 4.8, חיבור לאינטרנט ו־Codex שמחובר לחשבון ChatGPT בעל גישה מתאימה. בתפריט **פרטי החיבור** ניתן להתחבר ולבדוק את החיבור מחדש. הבדיקה כוללת תגובה אמיתית מהמודל; סימון התחברות בלבד אינו נחשב לחיבור זמין.
 

@@ -6,6 +6,24 @@ if (!(Test-Path -LiteralPath $compiler)) { throw 'The .NET Framework 4.x compile
 if (!(Test-Path -LiteralPath (Join-Path $projectRoot 'Native\pdfium.dll'))) { throw 'The bundled Windows x64 PDFium library in Native/pdfium.dll is required.' }
 $outputDir = Join-Path $projectRoot 'Build'
 New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+$releaseVersion = [System.IO.File]::ReadAllText((Join-Path $projectRoot 'VERSION')).Trim()
+if ($releaseVersion -notmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$') { throw 'VERSION must contain MAJOR.MINOR.PATCH.' }
+$versionParts = $releaseVersion.Split('.')
+foreach ($versionPart in $versionParts) { if ([long]::Parse($versionPart) -gt 65534) { throw 'Version components must fit the Windows file version format (0-65534).' } }
+$versionDate = [System.IO.File]::ReadAllText((Join-Path $projectRoot 'VERSION_DATE')).Trim()
+[datetimeoffset]::ParseExact($versionDate, "yyyy-MM-dd'T'HH:mm:sszzz", [System.Globalization.CultureInfo]::InvariantCulture) | Out-Null
+$assemblyInfoPath = Join-Path $outputDir 'AssemblyInfo.g.cs'
+$assemblyInfo = @"
+using System.Reflection;
+[assembly: AssemblyTitle(Education2k.AppInfo.Name)]
+[assembly: AssemblyProduct(Education2k.AppInfo.Name)]
+[assembly: AssemblyDescription(Education2k.AppInfo.Slogan)]
+[assembly: AssemblyVersion("$releaseVersion.0")]
+[assembly: AssemblyFileVersion("$releaseVersion.0")]
+[assembly: AssemblyInformationalVersion("$releaseVersion")]
+[assembly: AssemblyMetadata("VersionDate", "$versionDate")]
+"@
+[System.IO.File]::WriteAllText($assemblyInfoPath, $assemblyInfo, [System.Text.UTF8Encoding]::new($false))
 & (Join-Path $projectRoot 'Tools\build-icon.ps1')
 $iconPath = Join-Path $projectRoot 'Assets\app-icon.ico'
 $references = @('System.dll','System.Core.dll','System.Xml.dll','System.Xml.Linq.dll','System.Web.Extensions.dll','System.IO.Compression.dll','System.IO.Compression.FileSystem.dll','System.Xaml.dll','Microsoft.CSharp.dll')
@@ -21,6 +39,7 @@ $compilerArgs += '/reference:' + (Join-Path $frameworkDir 'WPF\PresentationCore.
 $compilerArgs += '/reference:' + (Join-Path $frameworkDir 'WPF\WindowsBase.dll')
 $compilerArgs += '/reference:' + (Join-Path $frameworkDir 'WPF\PresentationFramework.dll')
 $compilerArgs += (Get-ChildItem -LiteralPath (Join-Path $projectRoot 'Source') -Filter '*.cs').FullName
+$compilerArgs += $assemblyInfoPath
 & $compiler @compilerArgs
 if ($LASTEXITCODE -ne 0) { throw 'Compilation failed.' }
 Write-Output ('Built: ' + (Join-Path $projectRoot 'Education2k.exe'))

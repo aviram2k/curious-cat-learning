@@ -62,6 +62,14 @@ namespace Education2k
             b.Click += delegate { action(); };
             return b;
         }
+        static Button HeaderButton(string label, Action action, int fontSize = 16)
+        {
+            var button = Button(label, action);
+            button.Width = 160; button.Height = button.MinHeight = 60;
+            button.Padding = new Thickness(12, 8, 12, 8); button.Margin = new Thickness(5, 0, 5, 8);
+            button.Content = new TextBlock { Text = label, FontSize = fontSize, LineHeight = 20, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Margin = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
+            return button;
+        }
         static Border Card(UIElement content)
         {
             return new Border { Child = content, Background = Brushes.White, BorderBrush = Brush("#DFE8E4"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(17), Padding = new Thickness(28), Margin = new Thickness(0, 0, 0, 18) };
@@ -71,7 +79,7 @@ namespace Education2k
         public MainWindow(Store store, string previewMode = null)
         {
             this.store = store; codex = new CodexClient(store.Root); service = new ExamService(store, codex);
-            Title = "לומדים | מבחנים ולמידה"; Width = 1180; Height = 840; MinWidth = 860; MinHeight = 620;
+            Title = AppInfo.Name + " | " + AppInfo.Slogan; Width = 1180; Height = 840; MinWidth = 860; MinHeight = 620;
             using (var iconStream = typeof(MainWindow).Assembly.GetManifestResourceStream("Education2k.AppIcon.ico"))
             {
                 Icon = BitmapFrame.Create(iconStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
@@ -86,34 +94,49 @@ namespace Education2k
             Background = Brush("#F4F7F3"); FontFamily = new FontFamily("Segoe UI"); FlowDirection = FlowDirection.RightToLeft;
             Language = System.Windows.Markup.XmlLanguage.GetLanguage("he-IL");
             var shell = new Grid();
-            var layout = new Grid(); layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); layout.RowDefinitions.Add(new RowDefinition()); layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            var header = new DockPanel { Margin = new Thickness(34, 22, 34, 18), LastChildFill = true };
-            var brand = new StackPanel(); brand.Children.Add(Text("לומדים", 29));
-            brand.Children.Add(Text("כל ניסיון הוא צעד קדימה", 13, "#596F76"));
-            DockPanel.SetDock(brand, Dock.Left); header.Children.Add(brand);
-            var tools = new WrapPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
-            historyButton = Button("ההישגים שלי", ShowHistory); historyButton.IsEnabled = false;
+            shell.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); shell.RowDefinitions.Add(new RowDefinition()); shell.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            var version = Text(AppInfo.VersionLabel, 12, "#596F76");
+            version.Margin = new Thickness(34, 7, 34, 0); version.HorizontalAlignment = HorizontalAlignment.Left;
+            version.ToolTip = "תאריך ושעת העדכון לפי שעון ישראל";
+            AutomationProperties.SetName(version, AppInfo.VersionLabel); shell.Children.Add(version);
+            var layout = new Grid(); layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); layout.RowDefinitions.Add(new RowDefinition());
+            var header = new Grid { Margin = new Thickness(34, 18, 34, 14) };
+            header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(20) });
+            header.ColumnDefinitions.Add(new ColumnDefinition());
+            var brand = new Grid { VerticalAlignment = VerticalAlignment.Center };
+            brand.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            brand.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
+            brand.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var brandLogo = new Image { Source = appLogo, Width = 72, Height = 72, Stretch = Stretch.Uniform, FlowDirection = FlowDirection.LeftToRight };
+            AutomationProperties.SetName(brandLogo, "לוגו " + AppInfo.Name + " — חתול עם משקפיים קורא ספר");
+            brand.Children.Add(brandLogo);
+            var brandWords = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            var brandName = Text(AppInfo.Name, 28); brandName.Margin = new Thickness(0, 0, 0, 5); brandName.LineHeight = 36; brandName.TextWrapping = TextWrapping.NoWrap;
+            var brandSlogan = Text(AppInfo.Slogan, 14, "#596F76"); brandSlogan.Margin = new Thickness(0); brandSlogan.LineHeight = 22;
+            brandWords.Children.Add(brandName); brandWords.Children.Add(brandSlogan); Grid.SetColumn(brandWords, 2); brand.Children.Add(brandWords);
+            header.Children.Add(brand);
+            var tools = new WrapPanel { Orientation = Orientation.Horizontal, ItemWidth = 170, ItemHeight = 68, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
+            historyButton = HeaderButton("ההישגים שלי", ShowHistory); historyButton.IsEnabled = false;
             tools.Children.Add(historyButton);
-            var home = Button("המסך הראשי", delegate { if (student != null) { Save(); ShowModes(); } else ShowLogin(); }); home.Margin = new Thickness(10, 0, 0, 8); tools.Children.Add(home);
-            var addExamHelp = Button("כיצד להוסיף מבחן חדש", ShowAddExamGuide); addExamHelp.FontSize = 14; addExamHelp.Margin = new Thickness(10, 0, 0, 8); tools.Children.Add(addExamHelp);
-            var status = new StackPanel { Margin = new Thickness(20, 0, 0, 0), MinWidth = 180 };
-            connection.Text = "● בודק חיבור ל־Codex…"; connection.FontSize = 13; connection.Foreground = Brush("#6B6D45"); connection.Margin = new Thickness(0, 0, 0, 5);
-            status.Children.Add(connection);
-            var connectButton = Button("פרטי החיבור", ShowConnection); connectButton.Padding = new Thickness(12, 5, 12, 5); connectButton.MinHeight = 30; connectButton.FontSize = 13; status.Children.Add(connectButton);
-            tools.Children.Add(status); header.Children.Add(tools); layout.Children.Add(header);
+            var home = HeaderButton("המסך הראשי", delegate { if (student != null) { Save(); ShowModes(); } else ShowLogin(); }); tools.Children.Add(home);
+            var addExamHelp = HeaderButton("כיצד להוסיף מבחן חדש", ShowAddExamGuide, 14); tools.Children.Add(addExamHelp);
+            var connectButton = HeaderButton("פרטי החיבור", ShowConnection); tools.Children.Add(connectButton);
+            Grid.SetColumn(tools, 2); header.Children.Add(tools); layout.Children.Add(header);
             var scroll = new ScrollViewer { Content = body, Padding = new Thickness(32, 12, 32, 30) }; scroller = scroll;
             body.MaxWidth = 960; body.HorizontalAlignment = HorizontalAlignment.Stretch;
             Grid.SetRow(scroll, 1); layout.Children.Add(scroll);
             var footer = new DockPanel { Margin = new Thickness(34, 10, 34, 14) };
             identity.FontSize = 13; identity.Foreground = Brush("#596F76"); DockPanel.SetDock(identity, Dock.Right); footer.Children.Add(identity);
-            footer.Children.Add(Text("מרחב ללמידה בקצב שלך", 13, "#596F76")); Grid.SetRow(footer, 2); layout.Children.Add(footer);
-            shell.Children.Add(layout);
+            connection.Text = "● בודק חיבור ל־Codex…"; connection.FontSize = 13; connection.Foreground = Brush("#6B6D45"); connection.Margin = new Thickness(0); connection.VerticalAlignment = VerticalAlignment.Center;
+            footer.Children.Add(connection); Grid.SetRow(footer, 2); shell.Children.Add(footer);
+            Grid.SetRow(layout, 1); shell.Children.Add(layout);
             notice.Background = Brush("#E6F2E9"); notice.BorderBrush = Brush("#BCD9C2"); notice.BorderThickness = new Thickness(1); notice.CornerRadius = new CornerRadius(14);
             notice.Padding = new Thickness(20); notice.Margin = new Thickness(26); notice.HorizontalAlignment = HorizontalAlignment.Left; notice.VerticalAlignment = VerticalAlignment.Bottom; notice.MaxWidth = 340; notice.Visibility = Visibility.Collapsed;
-            notice.Child = Text("נותרו כ־10 דקות מהזמן המתוכנן. אפשר להמשיך לעבוד בנחת.", 16); shell.Children.Add(notice);
+            notice.Child = Text("נותרו כ־10 דקות מהזמן המתוכנן. אפשר להמשיך לעבוד בנחת.", 16); Grid.SetRow(notice, 1); shell.Children.Add(notice);
             busy.Background = Brush("#F4F7F3"); busy.Visibility = Visibility.Collapsed;
             waitingView = new WaitingView(delegate { if (operation != null) operation.Cancel(); });
-            busy.Child = waitingView; shell.Children.Add(busy); Content = shell;
+            busy.Child = waitingView; Grid.SetRow(busy, 1); shell.Children.Add(busy); Content = shell;
             timer.Interval = TimeSpan.FromSeconds(1); timer.Tick += delegate { Tick(); }; timer.Start();
             autosave.Interval = TimeSpan.FromMilliseconds(900); autosave.Tick += delegate { if (dirty) { try { Save(); } catch (Exception e) { autosave.Stop(); Error(e); } } }; autosave.Start();
             Closing += delegate(object sender, System.ComponentModel.CancelEventArgs closing) { try { Save(); } catch (Exception e) { closing.Cancel = true; Error(new InvalidOperationException("לא ניתן לשמור את התשובות: " + e.Message)); return; } lifetime.Cancel(); if (operation != null) operation.Cancel(); };
@@ -221,7 +244,7 @@ namespace Education2k
                 FlowDirection = FlowDirection.LeftToRight, Margin = new Thickness(0, 0, 0, 12), IsHitTestVisible = false };
             RenderOptions.SetBitmapScalingMode(logo, BitmapScalingMode.HighQuality);
             LogoAnimation.Attach(logo);
-            AutomationProperties.SetName(logo, "לוגו לומדים — חתול עם משקפיים קורא ספר"); p.Children.Add(logo);
+            AutomationProperties.SetName(logo, "לוגו " + AppInfo.Name + " — חתול עם משקפיים קורא ספר"); p.Children.Add(logo);
             var first = Inputs.Hebrew(); first.Margin = new Thickness(0, 0, 0, 10); first.MaxLength = 45;
             var last = Inputs.Hebrew(); last.Margin = new Thickness(0, 0, 0, 14); last.MaxLength = 45;
             AutomationProperties.SetName(first, "שם פרטי"); AutomationProperties.SetName(last, "שם משפחה");

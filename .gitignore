@@ -3,7 +3,11 @@
 /*
 !/.gitignore
 !/.gitattributes
+!/AGENTS.md
+!/VERSION
+!/VERSION_DATE
 !/README.md
+!/CHANGELOG.md
 !/LICENSE
 !/build.ps1
 !/Education2k.exe.config
