@@ -1,5 +1,12 @@
 # Changelog
 
+## Repository documentation - 2026-11-19
+
+- Display the promotional flyer at the top of the README, linked to the Windows
+  downloads page.
+- Documentation-only publication; the application version and release timestamp
+  remain unchanged.
+
 ## 0.1.2 - 2026-11-19
 
 - A Hebrew wizard for adding a topic with only a name and general description,

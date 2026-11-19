@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://github.com/aviram2k/curious-cat-learning/releases">
+    <img src="Marketing/Flyer.png" alt="החתול הסקרן — למידה מתוך סקרנות. חומרי הלימוד הופכים למבחנים ולתרגול בעברית, עם רמזים, משוב ומעקב התקדמות. לחצו להורדה." width="420">
+  </a>
+</p>
+
 # Curious Cat Learning · החתול הסקרן
 
 **למידה מתוך סקרנות**

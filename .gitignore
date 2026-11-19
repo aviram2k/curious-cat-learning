@@ -17,6 +17,11 @@
 !/Assets/
 !/Native/
 
+# Include only the public promotional image from this local folder.
+!/Marketing/
+/Marketing/*
+!/Marketing/Flyer.png
+
 # Never publish school materials, generated exams, source interpretations,
 # student profiles, attempts or local machine configuration, at any depth.
 **/מבחנים/
