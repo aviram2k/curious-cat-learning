@@ -1,0 +1,28 @@
+{
+  "Frames": [
+    {
+      "FileName": "frame-01.png",
+      "Milliseconds": 850
+    },
+    {
+      "FileName": "frame-02.png",
+      "Milliseconds": 220
+    },
+    {
+      "FileName": "frame-03.png",
+      "Milliseconds": 850
+    },
+    {
+      "FileName": "frame-04.png",
+      "Milliseconds": 90
+    },
+    {
+      "FileName": "frame-05.png",
+      "Milliseconds": 110
+    },
+    {
+      "FileName": "frame-06.png",
+      "Milliseconds": 90
+    }
+  ]
+}

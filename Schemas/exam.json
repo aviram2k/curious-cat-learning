@@ -1,0 +1,252 @@
+{
+  "type": "object",
+  "properties": {
+    "Number": {
+      "type": "integer"
+    },
+    "Title": {
+      "type": "string"
+    },
+    "Introduction": {
+      "type": "string"
+    },
+    "DurationMinutes": {
+      "type": "integer"
+    },
+    "CreatedUtc": {
+      "type": "string"
+    },
+    "MaterialHash": {
+      "type": "string"
+    },
+    "Questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string"
+          },
+          "Topic": {
+            "type": "string"
+          },
+          "Type": {
+            "type": "string",
+            "enum": [
+              "multiple_choice",
+              "text",
+              "table"
+            ]
+          },
+          "Prompt": {
+            "type": "string"
+          },
+          "Points": {
+            "type": "number"
+          },
+          "EstimatedMinutes": {
+            "type": "integer"
+          },
+          "Hint": {
+            "type": "string"
+          },
+          "Options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "CorrectOption": {
+            "type": "integer"
+          },
+          "ExpectedAnswer": {
+            "type": "string"
+          },
+          "Rubric": {
+            "type": "string"
+          },
+          "Columns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "Rows": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "CorrectCells": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "SourceReferences": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "Context": {
+            "type": "string"
+          },
+          "Parts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "Id": {
+                  "type": "string"
+                },
+                "Prompt": {
+                  "type": "string"
+                },
+                "Type": {
+                  "type": "string",
+                  "enum": [
+                    "text",
+                    "table"
+                  ]
+                },
+                "Points": {
+                  "type": "number"
+                },
+                "ExpectedAnswer": {
+                  "type": "string"
+                },
+                "Columns": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "Rows": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "CorrectCells": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "Id",
+                "Prompt",
+                "Type",
+                "Points",
+                "ExpectedAnswer",
+                "Columns",
+                "Rows",
+                "CorrectCells"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "ImageIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "SourceUnitIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "Id",
+          "Topic",
+          "Type",
+          "Prompt",
+          "Points",
+          "EstimatedMinutes",
+          "Hint",
+          "Options",
+          "CorrectOption",
+          "ExpectedAnswer",
+          "Rubric",
+          "Columns",
+          "Rows",
+          "CorrectCells",
+          "SourceReferences",
+          "Context",
+          "Parts",
+          "ImageIds",
+          "SourceUnitIds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "Sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "IsQuiz": {
+      "type": "boolean"
+    },
+    "SourceQuestionCount": {
+      "type": "integer"
+    },
+    "PresentationVersion": {
+      "type": "integer"
+    },
+    "SourceIssues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "FileName": {
+            "type": "string"
+          },
+          "Explanation": {
+            "type": "string"
+          },
+          "Impact": {
+            "type": "string"
+          },
+          "Recommendation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "FileName",
+          "Explanation",
+          "Impact",
+          "Recommendation"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "Number",
+    "Title",
+    "Introduction",
+    "DurationMinutes",
+    "CreatedUtc",
+    "MaterialHash",
+    "Questions",
+    "Sources",
+    "IsQuiz",
+    "SourceQuestionCount",
+    "PresentationVersion",
+    "SourceIssues"
+  ],
+  "additionalProperties": false
+}

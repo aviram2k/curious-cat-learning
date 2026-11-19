@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "properties": {
+    "Summary": {
+      "type": "string"
+    },
+    "Files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "FileName": {
+            "type": "string"
+          },
+          "Explanation": {
+            "type": "string"
+          },
+          "Impact": {
+            "type": "string"
+          },
+          "Recommendation": {
+            "type": "string"
+          },
+          "Status": {
+            "type": "string",
+            "enum": [
+              "read",
+              "partial",
+              "unread"
+            ]
+          }
+        },
+        "required": [
+          "FileName",
+          "Explanation",
+          "Impact",
+          "Recommendation",
+          "Status"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "Summary",
+    "Files"
+  ],
+  "additionalProperties": false
+}

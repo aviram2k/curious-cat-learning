@@ -1,0 +1,92 @@
+{
+  "type": "object",
+  "properties": {
+    "Questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "QuestionId": {
+            "type": "string"
+          },
+          "Context": {
+            "type": "string"
+          },
+          "Hint": {
+            "type": "string"
+          },
+          "Parts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "Id": {
+                  "type": "string"
+                },
+                "Prompt": {
+                  "type": "string"
+                },
+                "Type": {
+                  "type": "string",
+                  "enum": [
+                    "text",
+                    "table"
+                  ]
+                },
+                "Points": {
+                  "type": "number"
+                },
+                "ExpectedAnswer": {
+                  "type": "string"
+                },
+                "Columns": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "Rows": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "CorrectCells": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "Id",
+                "Prompt",
+                "Type",
+                "Points",
+                "ExpectedAnswer",
+                "Columns",
+                "Rows",
+                "CorrectCells"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "QuestionId",
+          "Context",
+          "Hint",
+          "Parts"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "Questions"
+  ],
+  "additionalProperties": false
+}

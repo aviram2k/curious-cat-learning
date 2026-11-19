@@ -1,0 +1,53 @@
+{
+  "type": "object",
+  "properties": {
+    "Items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string"
+          },
+          "Status": {
+            "type": "string",
+            "enum": [
+              "read",
+              "partial",
+              "unread"
+            ]
+          },
+          "Text": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string"
+          },
+          "Caption": {
+            "type": "string"
+          },
+          "Issue": {
+            "type": "string"
+          },
+          "ExamSuitable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "Id",
+          "Status",
+          "Text",
+          "Description",
+          "Caption",
+          "Issue",
+          "ExamSuitable"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "Items"
+  ],
+  "additionalProperties": false
+}

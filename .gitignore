@@ -1,0 +1,54 @@
+# Publish the application source and required assets only. New root folders
+# remain local until explicitly included here.
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/LICENSE
+!/build.ps1
+!/Education2k.exe.config
+!/Source/
+!/Schemas/
+!/Tools/
+!/Assets/
+!/Native/
+
+# Never publish school materials, generated exams, source interpretations,
+# student profiles, attempts or local machine configuration, at any depth.
+**/מבחנים/
+**/תלמידים/
+**/נסיונות/
+**/_materials/
+**/_describe.txt
+**/_exam_*
+**/_quiz_*
+**/_material_review.json*
+**/*.material-review.json*
+**/_student.json*
+**/_generation.lock
+**/codex-location.txt
+**/Build/
+**/tmp/
+**/bin/
+**/obj/
+**/.vs/
+**/__pycache__/
+**/*.pyc
+**/*.tmp
+**/*.bak
+**/*.log
+**/*.pdf
+**/*.doc
+**/*.docx
+**/*.ppt
+**/*.pptx
+**/*.xls
+**/*.xlsx
+
+# Credentials and private keys must never be added with the source.
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.pfx
+**/*.p12
