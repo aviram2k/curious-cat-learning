@@ -16,7 +16,9 @@ namespace Education2k
             if (args.Length == 3 && args[0] == "--render-office") return OfficeRender.Worker(args[1], args[2]);
             try
             {
+                if (args.Length == 3 && (args[0] == "--apply-app-update" || args[0] == "--recover-app-update")) return AutomaticUpdate.Worker(args[1], args[2], args[0] == "--recover-app-update");
                 if (args.Contains("--test")) return Tests.Run(root);
+                if (args.Contains("--check-app-update")) return Tests.LiveUpdateCheck(root);
                 if (args.Contains("--print-example")) return Tests.PrintExample(root);
                 if (args.Contains("--check-connection"))
                 {
@@ -45,14 +47,25 @@ namespace Education2k
                     }
                     File.WriteAllText(Path.Combine(root, "Build", "presentation-update.txt"), "PASS: Updated " + count + " shared exams with educational hints and clear sections; created their short quizzes."); return 0;
                 }
+                bool completingUpdate = args.Length == 3 && args[0] == "--complete-app-update";
+                if (args.Length == 0 && AutomaticUpdate.RecoverStartup(root)) return 0;
                 var app = new Application();
                 using (var stream = typeof(Program).Assembly.GetManifestResourceStream("Education2k.Theme.xaml")) app.Resources.MergedDictionaries.Add((ResourceDictionary)XamlReader.Load(stream));
                 app.DispatcherUnhandledException += delegate(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e) {
                     Dialogs.Show(app.MainWindow, "אירעה תקלה", e.Exception.Message, false); e.Handled = true;
                 };
-                string previewMode = args.Contains("--preview-print-ready") ? "print-ready" : args.Contains("--preview-print") ? "print" : args.Contains("--preview-feedback") ? "feedback" : args.Contains("--preview-scroll") ? "scroll" : args.Contains("--preview-new-exam") ? "new-exam" : args.Contains("--preview-images") ? "images" : args.Contains("--preview-waiting") ? "waiting" : args.Contains("--preview-materials") ? "materials" : args.Contains("--preview-updates") ? "sections" : args.Contains("--preview-quiz") ? "quiz" : args.Contains("--preview-modes") ? "modes" : null;
-                string dataRoot = previewMode == null ? root : previewMode == "print" || previewMode == "print-ready" ? Tests.PreparePrintPreview(root) : previewMode == "feedback" ? Tests.PrepareFeedbackPreview(root) : previewMode == "scroll" ? Tests.PrepareScrollPreview(root) : previewMode == "new-exam" ? Tests.PrepareNewExamPreview(root) : Tests.PreparePreview(root);
-                app.Run(new MainWindow(new Store(dataRoot), previewMode)); return 0;
+                string previewMode = args.Contains("--preview-app-update") ? "app-update" : args.Contains("--preview-print-ready") ? "print-ready" : args.Contains("--preview-print") ? "print" : args.Contains("--preview-feedback") ? "feedback" : args.Contains("--preview-scroll") ? "scroll" : args.Contains("--preview-new-exam") ? "new-exam" : args.Contains("--preview-images") ? "images" : args.Contains("--preview-waiting") ? "waiting" : args.Contains("--preview-materials") ? "materials" : args.Contains("--preview-updates") ? "sections" : args.Contains("--preview-quiz") ? "quiz" : args.Contains("--preview-modes") ? "modes" : null;
+                string dataRoot = previewMode == null ? root : previewMode == "app-update" ? Tests.PrepareUpdatePreview(root) : previewMode == "print" || previewMode == "print-ready" ? Tests.PreparePrintPreview(root) : previewMode == "feedback" ? Tests.PrepareFeedbackPreview(root) : previewMode == "scroll" ? Tests.PrepareScrollPreview(root) : previewMode == "new-exam" ? Tests.PrepareNewExamPreview(root) : Tests.PreparePreview(root);
+                var window = new MainWindow(new Store(dataRoot), previewMode);
+                if (completingUpdate)
+                {
+                    bool acknowledged = false;
+                    window.ContentRendered += async delegate {
+                        if (acknowledged) return; acknowledged = true;
+                        try { window.ApplicationUpdateCompleted(await AutomaticUpdate.Complete(args[1], args[2], root, AppInfo.Version)); } catch (Exception) { app.Shutdown(1); }
+                    };
+                }
+                app.Run(window); return 0;
             }
             catch (Exception e)
             {

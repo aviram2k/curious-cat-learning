@@ -26,7 +26,7 @@ using System.Reflection;
 [System.IO.File]::WriteAllText($assemblyInfoPath, $assemblyInfo, [System.Text.UTF8Encoding]::new($false))
 & (Join-Path $projectRoot 'Tools\build-icon.ps1')
 $iconPath = Join-Path $projectRoot 'Assets\app-icon.ico'
-$references = @('System.dll','System.Core.dll','System.Xml.dll','System.Xml.Linq.dll','System.Web.Extensions.dll','System.IO.Compression.dll','System.IO.Compression.FileSystem.dll','System.Xaml.dll','Microsoft.CSharp.dll')
+$references = @('System.dll','System.Core.dll','System.Xml.dll','System.Xml.Linq.dll','System.Web.Extensions.dll','System.IO.Compression.dll','System.IO.Compression.FileSystem.dll','System.Net.Http.dll','System.Xaml.dll','Microsoft.CSharp.dll')
 $compilerArgs = @('/nologo','/target:winexe','/platform:anycpu','/optimize+','/codepage:65001',('/out:' + (Join-Path $projectRoot 'Education2k.exe')),('/resource:' + (Join-Path $projectRoot 'Source\Theme.xaml') + ',Education2k.Theme.xaml'))
 $compilerArgs += '/win32icon:' + $iconPath
 $compilerArgs += '/resource:' + $iconPath + ',Education2k.AppIcon.ico'

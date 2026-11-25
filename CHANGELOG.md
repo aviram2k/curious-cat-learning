@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.7 - 2026-11-26
+
+- Quiet daily GitHub checks and verified background downloads. An idle home-screen
+  notice offers Update and restart, with a one-day deferral and no exam interruption.
+- Updates save work before closing, replace only allowlisted runtime files, and
+  require a successful application startup before committing. A separate helper
+  restores the previous version on copy or startup failure; interrupted transactions
+  recover on the next launch. Materials, exams, student results, drafts and local
+  Codex configuration remain in place.
+- Downloaded ZIPs are deleted after staging. Temporary runtime backups, staging and
+  the helper are removed after successful installation or rollback. An unfinished
+  recovery retains its backup until restoration completes; existing user ZIPs are
+  never removed. Update state lives separately under LocalAppData.
+- Synthetic tests cover real helper processes, restart failure, interrupted copy
+  and rollback, checksum and path validation, cleanup, and byte-for-byte data
+  preservation. An isolated Hebrew preview needs no network or Codex calls.
+
 ## 0.1.6 - 2026-11-25
 
 - Hebrew speech-bubble explanations for the five header buttons, shown after a
