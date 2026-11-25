@@ -38,6 +38,8 @@ foreach ($reference in $references) { $compilerArgs += '/reference:' + (Join-Pat
 $compilerArgs += '/reference:' + (Join-Path $frameworkDir 'WPF\PresentationCore.dll')
 $compilerArgs += '/reference:' + (Join-Path $frameworkDir 'WPF\WindowsBase.dll')
 $compilerArgs += '/reference:' + (Join-Path $frameworkDir 'WPF\PresentationFramework.dll')
+$compilerArgs += '/reference:' + (Join-Path $frameworkDir 'WPF\ReachFramework.dll')
+$compilerArgs += '/reference:' + (Join-Path $frameworkDir 'WPF\System.Printing.dll')
 $compilerArgs += (Get-ChildItem -LiteralPath (Join-Path $projectRoot 'Source') -Filter '*.cs').FullName
 $compilerArgs += $assemblyInfoPath
 & $compiler @compilerArgs

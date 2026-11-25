@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.4 - 2026-11-25
+
+- A Hebrew PDF exam workflow with exam name, class, school, source-file drop,
+  progress preview, and repeatable creation without an application quantity cap.
+- Printable questions with writing areas and blank tables, followed by a separate
+  solution section. Every A4 page includes the reading-cat logo, a clickable
+  project link and Codex attribution.
+- Self-contained PDF export and native print, save-copy, open-file and open-folder
+  actions. All managed print data stays under `מבחנים/מבחנים להדפסה`, outside
+  student topic lists and progression. Interrupted work remains resumable.
+- Native printing supports the default question-only range or all pages with
+  solutions. Background-decoded images are detached from their original decoder
+  before printing; a regression test covers XPS serialization across threads.
+
 ## 0.1.3 - 2026-11-25
 
 - Shorter end-of-exam feedback: correct answers receive congratulations, hint-only

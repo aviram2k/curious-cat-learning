@@ -10,6 +10,7 @@ namespace Education2k
 {
     public class Store
     {
+        public const string PrintFolderName = "מבחנים להדפסה";
         public readonly string Root;
         public readonly List<string> Warnings = new List<string>();
         public static JavaScriptSerializer Json { get { return new JavaScriptSerializer { MaxJsonLength = 16000000, RecursionLimit = 100 }; } }
@@ -35,6 +36,7 @@ namespace Education2k
         public List<Topic> Topics()
         {
             return Directory.GetDirectories(Path.Combine(Root, "מבחנים"))
+                .Where(p => !String.Equals(Path.GetFileName(p), PrintFolderName, StringComparison.OrdinalIgnoreCase))
                 .Where(p => (File.GetAttributes(p) & FileAttributes.ReparsePoint) == 0)
                 .OrderBy(Path.GetFileName, StringComparer.CurrentCulture).Select(ReadTopic).ToList();
         }

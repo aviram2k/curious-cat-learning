@@ -14,6 +14,7 @@ namespace Education2k
     public class ExamDraft
     {
         public string Id, Name = "", Description = "", CreatedUtc, UpdatedUtc;
+        public string Classroom = "", School = "";
         public int Step;
         [ScriptIgnore] public string Folder;
     }
@@ -25,8 +26,9 @@ namespace Education2k
     {
         readonly Store store;
         readonly object gate = new object();
+        readonly bool printing;
         public readonly string Root;
-        public ExamDrafts(Store store) { this.store = store; Root = Path.Combine(store.Root, "_drafts"); }
+        public ExamDrafts(Store store, bool printing = false) { this.store = store; this.printing = printing; Root = printing ? Path.Combine(store.Root, "מבחנים", Store.PrintFolderName, "_drafts") : Path.Combine(store.Root, "_drafts"); }
         string Folder(string id)
         {
             if (id == null || !Regex.IsMatch(id, "^[a-f0-9]{32}$")) throw new InvalidOperationException("מזהה הטיוטה אינו תקין.");
@@ -109,9 +111,10 @@ namespace Education2k
         public void ValidateDetails(ExamDraft draft)
         {
             Check(draft); string name = CleanTopicName(draft.Name);
+            if (!printing && String.Equals(name, Store.PrintFolderName, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("השם הזה שמור למבחני PDF. יש לבחור שם אחר לנושא.");
             if (String.IsNullOrWhiteSpace(draft.Description) || draft.Description.Length > 8000) throw new InvalidOperationException("יש לכתוב תיאור כללי קצר של נושא המבחן והחומר. אין צורך לפרט עמודים או פרקים.");
             string destination = Path.Combine(store.Root, "מבחנים", name);
-            if (Directory.Exists(destination) || File.Exists(destination)) throw new InvalidOperationException("כבר קיים מבחן בשם הזה. בחרו שם אחר כדי לשמור על המבחן הקיים.");
+            if (!printing && (Directory.Exists(destination) || File.Exists(destination))) throw new InvalidOperationException("כבר קיים מבחן בשם הזה. בחרו שם אחר כדי לשמור על המבחן הקיים.");
         }
         public string[] Files(ExamDraft draft) { lock (gate) { Check(draft); return Store.ReadTopic(draft.Folder).Materials; } }
         static string MaterialName(string name)
@@ -177,7 +180,7 @@ namespace Education2k
                 File.Move(path, Path.Combine(removed, Guid.NewGuid().ToString("N") + "-" + name)); Save(draft);
             }
         }
-        public async Task<Topic> Complete(ExamDraft draft, ExamService exams, CancellationToken cancellation, Func<MaterialReview, MaterialDecision> confirm)
+        public async Task<Exam> Prepare(ExamDraft draft, ExamService exams, CancellationToken cancellation, Func<MaterialReview, MaterialDecision> confirm)
         {
             lock (gate)
             {
@@ -192,7 +195,12 @@ namespace Education2k
                     File.Move(existing, Path.Combine(previous, "exam-" + Guid.NewGuid().ToString("N") + ".json"));
                 }
             }
-            var exam = await exams.GetExam(Store.ReadTopic(draft.Folder), 1, cancellation, confirm);
+            return await exams.GetExam(Store.ReadTopic(draft.Folder), 1, cancellation, confirm);
+        }
+        public async Task<Topic> Complete(ExamDraft draft, ExamService exams, CancellationToken cancellation, Func<MaterialReview, MaterialDecision> confirm)
+        {
+            if (printing) throw new InvalidOperationException("טיוטת הדפסה נשמרת בתיקיית המבחנים להדפסה.");
+            var exam = await Prepare(draft, exams, cancellation, confirm);
             cancellation.ThrowIfCancellationRequested();
             lock (gate)
             {

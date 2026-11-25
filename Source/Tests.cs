@@ -119,6 +119,7 @@ namespace Education2k
                 DraftChecks(temp);
                 ScrollChecks();
                 FeedbackChecks(temp);
+                PrintingChecks(temp);
                 report.Add("\n" + report.Count + " checks passed. No sample student data was modified.");
                 File.WriteAllLines(Path.Combine(sampleRoot, "Build", "tests.txt"), report, Encoding.UTF8); return 0;
             }

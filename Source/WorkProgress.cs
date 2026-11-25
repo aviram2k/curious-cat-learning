@@ -51,12 +51,12 @@ namespace Education2k
         public readonly string Goal;
         public string Heading, WaitingFor, FileStatus, ResultFile;
         public bool HasResult;
-        public bool IsPreparation { get { return Goal == "exam" || Goal == "quiz"; } }
+        public bool IsPreparation { get { return Goal == "exam" || Goal == "quiz" || Goal == "pdf"; } }
         public WorkState(string heading, string goal, string root, DateTime now)
         {
             Goal = goal; Heading = heading; StartedUtc = LastUpdateUtc = lastStatusUtc = now;
             WaitingFor = "בודקים מה נדרש כדי להתחיל.";
-            FileStatus = IsPreparation ? (goal == "quiz" ? "הבוחן עדיין לא נשמר." : "המבחן עדיין לא נשמר.") : "טרם נשמר קובץ חדש בפעולה הזאת.";
+            FileStatus = IsPreparation ? (goal == "pdf" ? "קובץ ה־PDF עדיין לא נשמר." : goal == "quiz" ? "הבוחן עדיין לא נשמר." : "המבחן עדיין לא נשמר.") : "טרם נשמר קובץ חדש בפעולה הזאת.";
         }
         public void Apply(WorkUpdate update)
         {
@@ -81,9 +81,11 @@ namespace Education2k
                 FileStatus = (update.Kind == "existing" ? "משתמשים בקובץ שכבר נשמר: " : "נשמר בהצלחה: ") + "\u200e" + update.FileName + "\u200e";
             }
             else if (update.Kind == "saved" && update.Role == "report" && IsPreparation && !HasResult)
-                FileStatus = "דוח בדיקת המקורות נשמר. " + (Goal == "quiz" ? "הבוחן עדיין לא נשמר." : "המבחן עדיין לא נשמר.");
+                FileStatus = "דוח בדיקת המקורות נשמר. " + (Goal == "pdf" ? "קובץ ה־PDF עדיין לא נשמר." : Goal == "quiz" ? "הבוחן עדיין לא נשמר." : "המבחן עדיין לא נשמר.");
             else if (update.Kind == "saved" && update.Role == "exam" && Goal == "quiz" && !HasResult)
                 FileStatus = "המבחן המלא נשמר. הבוחן עדיין בהכנה.";
+            else if (update.Kind == "saved" && update.Role == "exam" && Goal == "pdf" && !HasResult)
+                FileStatus = "השאלות נשמרו. קובץ ה־PDF עדיין בהכנה.";
             if (String.IsNullOrEmpty(update.Message)) return;
             string line = Elapsed(update.Utc) + " · " + WorkFlow.SafeLabel(update.Message);
             Log.Add(line); if (Log.Count > 120) Log.RemoveAt(0);

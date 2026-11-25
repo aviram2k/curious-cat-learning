@@ -79,6 +79,7 @@ namespace Education2k
         public MainWindow(Store store, string previewMode = null)
         {
             this.store = store; codex = new CodexClient(store.Root); service = new ExamService(store, codex); drafts = new ExamDrafts(store); wizardDemo = previewMode == "new-exam";
+            printService = new PrintExamService(store); printDemo = previewMode == "print" || previewMode == "print-ready";
             Title = AppInfo.Name + " | " + AppInfo.Slogan; Width = 1180; Height = 840; MinWidth = 860; MinHeight = 620;
             using (var iconStream = typeof(MainWindow).Assembly.GetManifestResourceStream("Education2k.AppIcon.ico"))
             {
@@ -121,6 +122,7 @@ namespace Education2k
             tools.Children.Add(historyButton);
             var home = HeaderButton("המסך הראשי", delegate { if (student != null) { Save(); ShowModes(); } else ShowLogin(); }); tools.Children.Add(home);
             var addExamHelp = HeaderButton("הוסף מבחן חדש", ShowAddExamWizard, 14); tools.Children.Add(addExamHelp);
+            tools.Children.Add(HeaderButton("צור מבחן PDF", ShowPrintExam));
             var connectButton = HeaderButton("פרטי החיבור", ShowConnection); tools.Children.Add(connectButton);
             Grid.SetColumn(tools, 2); header.Children.Add(tools); layout.Children.Add(header);
             var scroll = new ScrollViewer { Content = body, Padding = new Thickness(32, 12, 32, 30) }; scroller = scroll;
@@ -139,8 +141,8 @@ namespace Education2k
             waitingView = new WaitingView(delegate { if (operation != null) operation.Cancel(); });
             busy.Child = waitingView; Grid.SetRow(busy, 1); shell.Children.Add(busy); Content = shell;
             AllowDrop = true;
-            PreviewDragOver += delegate(object sender, DragEventArgs e) { if (e.Data.GetDataPresent(DataFormats.FileDrop)) { e.Effects = wizardVisible && wizardStep == 1 && operation == null ? DragDropEffects.Copy : DragDropEffects.None; e.Handled = true; } };
-            PreviewDrop += delegate(object sender, DragEventArgs e) { if (e.Data.GetDataPresent(DataFormats.FileDrop)) { e.Handled = true; ImportWizardFiles((string[])e.Data.GetData(DataFormats.FileDrop)); } };
+            PreviewDragOver += delegate(object sender, DragEventArgs e) { if (e.Data.GetDataPresent(DataFormats.FileDrop)) { e.Effects = (printVisible || wizardVisible && wizardStep == 1) && operation == null ? DragDropEffects.Copy : DragDropEffects.None; e.Handled = true; } };
+            PreviewDrop += delegate(object sender, DragEventArgs e) { if (e.Data.GetDataPresent(DataFormats.FileDrop)) { e.Handled = true; if (printVisible) ImportPrintFiles((string[])e.Data.GetData(DataFormats.FileDrop)); else ImportWizardFiles((string[])e.Data.GetData(DataFormats.FileDrop)); } };
             timer.Interval = TimeSpan.FromSeconds(1); timer.Tick += delegate { Tick(); }; timer.Start();
             autosave.Interval = TimeSpan.FromMilliseconds(900); autosave.Tick += delegate { if (dirty) { try { Save(); } catch (Exception e) { autosave.Stop(); Error(e); } } }; autosave.Start();
             Closing += delegate(object sender, System.ComponentModel.CancelEventArgs closing) { try { Save(); } catch (Exception e) { closing.Cancel = true; Error(new InvalidOperationException("לא ניתן לשמור את התשובות: " + e.Message)); return; } lifetime.Cancel(); if (operation != null) operation.Cancel(); };
@@ -148,6 +150,8 @@ namespace Education2k
             Loaded += async delegate {
                 if (previewMode != null)
                 {
+                    if (previewMode == "print-ready") { identity.Text = "בדיקת PDF · חומר סינתטי"; connection.Text = "● תצוגת בדיקה · ללא פנייה ל־Codex"; Run("מכינים קובץ PDF לבדיקה…", async ct => { ShowPrintReady(await Tests.PrintReadyPreview(store, ct)); }, "pdf"); return; }
+                    if (printDemo) { identity.Text = "בדיקת מבחן PDF · מודל מדומה"; connection.Text = "● תצוגת בדיקה · ללא פנייה ל־Codex"; ShowPrintExam(); return; }
                     if (previewMode == "feedback")
                     {
                         student = store.Login("בדיקת", "משוב"); identity.Text = "תצוגת משוב · נתונים סינתטיים"; connection.Text = "● תצוגת בדיקה · ללא פנייה ל־Codex"; historyButton.IsEnabled = true;
@@ -190,6 +194,7 @@ namespace Education2k
         void Page(string title, string subtitle, Action render)
         {
             wizardVisible = false;
+            printVisible = false;
             currentPage = render; inQuestion = false; notice.Visibility = Visibility.Collapsed; body.Children.Clear();
             scroller.ScrollToTop();
             body.Children.Add(Text(title, 32)); body.Children.Add(Text(subtitle, 17, "#596F76")); Gap(body);
@@ -232,6 +237,7 @@ namespace Education2k
         void Save()
         {
             FlushWizardDraft();
+            FlushPrintDraft();
             if (student != null && attempt != null) store.Save(student, attempt);
             dirty = false;
         }
@@ -488,6 +494,7 @@ namespace Education2k
         {
             if (operation != null) waitingView.RefreshTimes();
             WizardTick();
+            PrintTick();
             if (attempt == null || attempt.FinishedUtc != null) { notice.Visibility = Visibility.Collapsed; return; }
             var started = DateTime.Parse(attempt.StartedUtc, null, DateTimeStyles.RoundtripKind);
             var elapsed = DateTime.UtcNow - started;
