@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.5 - 2026-11-25
+
+- Header buttons share the available width in one row, including at the minimum
+  window size. Longer Hebrew labels wrap within their buttons.
+
 ## 0.1.4 - 2026-11-25
 
 - A Hebrew PDF exam workflow with exam name, class, school, source-file drop,

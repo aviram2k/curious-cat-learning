@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -65,8 +66,8 @@ namespace Education2k
         static Button HeaderButton(string label, Action action, int fontSize = 16)
         {
             var button = Button(label, action);
-            button.Width = 160; button.Height = button.MinHeight = 60;
-            button.Padding = new Thickness(12, 8, 12, 8); button.Margin = new Thickness(5, 0, 5, 8);
+            button.Height = button.MinHeight = 60;
+            button.Padding = new Thickness(6, 8, 6, 8); button.Margin = new Thickness(4, 0, 4, 0);
             button.Content = new TextBlock { Text = label, FontSize = fontSize, LineHeight = 20, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Margin = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
             return button;
         }
@@ -117,7 +118,7 @@ namespace Education2k
             var brandSlogan = Text(AppInfo.Slogan, 14, "#596F76"); brandSlogan.Margin = new Thickness(0); brandSlogan.LineHeight = 22;
             brandWords.Children.Add(brandName); brandWords.Children.Add(brandSlogan); Grid.SetColumn(brandWords, 2); brand.Children.Add(brandWords);
             header.Children.Add(brand);
-            var tools = new WrapPanel { Orientation = Orientation.Horizontal, ItemWidth = 170, ItemHeight = 68, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
+            var tools = new UniformGrid { Rows = 1, VerticalAlignment = VerticalAlignment.Center };
             historyButton = HeaderButton("ההישגים שלי", ShowHistory); historyButton.IsEnabled = false;
             tools.Children.Add(historyButton);
             var home = HeaderButton("המסך הראשי", delegate { if (student != null) { Save(); ShowModes(); } else ShowLogin(); }); tools.Children.Add(home);
