@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.3 - 2026-11-25
+
+- Shorter end-of-exam feedback: correct answers receive congratulations, hint-only
+  deductions are explained separately, and partial answers show only the sections
+  needing correction with the student's answer and the complete reference answer.
+- Question wording and sources are available in collapsed details. Existing report
+  comments can be simplified once through Codex without regrading or changing answers.
+- Mouse-wheel scrolling continues through the exam page when the pointer is
+  over a table or an answer field that cannot scroll further in that direction.
+  Long answers retain their own scrolling, and horizontal table scrolling is preserved.
+
 ## Repository documentation - 2026-11-19
 
 - Display the promotional flyer at the top of the README, linked to the Windows

@@ -49,8 +49,8 @@ namespace Education2k
                 app.DispatcherUnhandledException += delegate(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e) {
                     Dialogs.Show(app.MainWindow, "אירעה תקלה", e.Exception.Message, false); e.Handled = true;
                 };
-                string previewMode = args.Contains("--preview-new-exam") ? "new-exam" : args.Contains("--preview-images") ? "images" : args.Contains("--preview-waiting") ? "waiting" : args.Contains("--preview-materials") ? "materials" : args.Contains("--preview-updates") ? "sections" : args.Contains("--preview-quiz") ? "quiz" : args.Contains("--preview-modes") ? "modes" : null;
-                string dataRoot = previewMode == null ? root : previewMode == "new-exam" ? Tests.PrepareNewExamPreview(root) : Tests.PreparePreview(root);
+                string previewMode = args.Contains("--preview-feedback") ? "feedback" : args.Contains("--preview-scroll") ? "scroll" : args.Contains("--preview-new-exam") ? "new-exam" : args.Contains("--preview-images") ? "images" : args.Contains("--preview-waiting") ? "waiting" : args.Contains("--preview-materials") ? "materials" : args.Contains("--preview-updates") ? "sections" : args.Contains("--preview-quiz") ? "quiz" : args.Contains("--preview-modes") ? "modes" : null;
+                string dataRoot = previewMode == null ? root : previewMode == "feedback" ? Tests.PrepareFeedbackPreview(root) : previewMode == "scroll" ? Tests.PrepareScrollPreview(root) : previewMode == "new-exam" ? Tests.PrepareNewExamPreview(root) : Tests.PreparePreview(root);
                 app.Run(new MainWindow(new Store(dataRoot), previewMode)); return 0;
             }
             catch (Exception e)

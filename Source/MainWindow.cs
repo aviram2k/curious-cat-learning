@@ -124,6 +124,7 @@ namespace Education2k
             var connectButton = HeaderButton("פרטי החיבור", ShowConnection); tools.Children.Add(connectButton);
             Grid.SetColumn(tools, 2); header.Children.Add(tools); layout.Children.Add(header);
             var scroll = new ScrollViewer { Content = body, Padding = new Thickness(32, 12, 32, 30) }; scroller = scroll;
+            ScrollWheelRouting.Enable(scroll);
             body.MaxWidth = 960; body.HorizontalAlignment = HorizontalAlignment.Stretch;
             Grid.SetRow(scroll, 1); layout.Children.Add(scroll);
             var footer = new DockPanel { Margin = new Thickness(34, 10, 34, 14) };
@@ -147,6 +148,18 @@ namespace Education2k
             Loaded += async delegate {
                 if (previewMode != null)
                 {
+                    if (previewMode == "feedback")
+                    {
+                        student = store.Login("בדיקת", "משוב"); identity.Text = "תצוגת משוב · נתונים סינתטיים"; connection.Text = "● תצוגת בדיקה · ללא פנייה ל־Codex"; historyButton.IsEnabled = true;
+                        topic = store.Topics().Single(); exam = store.LoadExam(topic, 1); attempt = store.History(student).Single(); ShowSummary(); return;
+                    }
+                    if (previewMode == "scroll")
+                    {
+                        Width = MinWidth; Height = MinHeight;
+                        student = store.Login("בדיקת", "גלילה"); identity.Text = "בדיקת גלילה · נתונים סינתטיים"; historyButton.IsEnabled = true;
+                        connection.Text = "● תצוגת בדיקה · ללא פנייה ל־Codex";
+                        topic = store.Topics().Single(); exam = store.LoadExam(topic, 1); attempt = store.CreateAttempt(topic, exam, false); attempt.CurrentQuestion = 4; ShowQuestion(); return;
+                    }
                     if (wizardDemo) { identity.Text = "תצוגת בדיקה · יצירת מבחן עם מודל מדומה"; connection.Text = "● תצוגת בדיקה · ללא פנייה ל־Codex"; ShowAddExamWizard(); return; }
                     student = store.Login("בדיקת", "ממשק"); identity.Text = "תצוגת בדיקה · " + student.FullName; historyButton.IsEnabled = true; topic = store.Topics().First();
                     if (previewMode == "waiting")
@@ -511,43 +524,29 @@ namespace Education2k
         }
         void ShowSummary()
         {
+            ShowSummaryPage();
+            if (operation != null || !exam.Questions.Any(q => FeedbackReport.NeedsModel(q, attempt.Answers.Single(a => a.QuestionId == q.Id)))) return;
+            var savedExam = exam; var savedAttempt = attempt; var savedStudent = student;
+            Run("מכינים משוב קצר וברור…", async cancellation => {
+                if (await new FeedbackReportService(codex).Simplify(savedExam, savedAttempt, cancellation)) store.Save(savedStudent, savedAttempt);
+                ShowSummaryPage();
+            });
+        }
+        void ShowSummaryPage()
+        {
             Page(attempt.Practice ? "עוד צעד בדרך להבנה" : "סיימת. עכשיו לומדים מהדרך", exam.Title + " · " + (attempt.Quiz ? "בוחן מספר " : "מבחן מספר ") + exam.Number, ShowSummary);
             var overview = Panel();
             if (exam.FilteredSources) overview.Children.Add(Text(new MaterialSelection { Excluded = exam.ExcludedMaterials }.ScopeNote, 16, "#866337"));
             if (attempt.Practice) overview.Children.Add(Text("תרגול שהושלם · ללא ציון", 28, "#176F65"));
             else { overview.Children.Add(Text("הציון שלך: " + attempt.Score.Value.ToString("0.##") + " מתוך 100", 29)); overview.Children.Add(Text(attempt.Passed ? (attempt.Quiz ? "הבוחן הושלם בהצלחה. בפעם הבאה ייפתח הבוחן הבא. ההתקדמות במבחנים המלאים נשמרת בנפרד." : "המבחן הושלם בהצלחה. בפעם הבאה ייפתח המבחן הבא בנושא.") : "כדאי לחזק את הנושאים שבהמשך, ולחזור כשמרגישים מוכנים. ההתקדמות היא בציון גבוה מ־80.")); }
-            var weak = exam.Questions.Where(q => Rules.NeedsReview(attempt.Answers.Single(x => x.QuestionId == q.Id))).Select(q => q.Topic).Distinct().ToList();
+            var weak = exam.Questions.Where(q => !FeedbackReport.Correct(attempt.Answers.Single(x => x.QuestionId == q.Id))).Select(q => q.Topic).Distinct().ToList();
             overview.Children.Add(Text(weak.Count == 0 ? (attempt.Practice ? "ענית בהצלחה בעזרת ההסברים. כדאי להתנסות בהמשך גם בשאלות באופן עצמאי." : "התשובות מראות הבנה טובה של הנושאים במבחן הזה. כדאי לבדוק את ההבנה שוב בהמשך, בשאלות נוספות.") : "כדאי לחזור במיוחד על: " + String.Join(" · ", weak), 18));
             overview.Children.Add(Text("המשוב והמוכנות מתארים את הביצועים בתרגולים שנעשו כאן. הם אינם אבחון של יכולת הלמידה.", 14, "#596F76")); body.Children.Add(Card(overview));
-            body.Children.Add(Text("דוח השאלות וההסברים", 24));
+            body.Children.Add(Text("המשוב על השאלות", 24));
             for (int i = 0; i < exam.Questions.Count; i++)
             {
-                var q = exam.Questions[i]; var a = attempt.Answers.Single(x => x.QuestionId == q.Id); var p = Panel();
-                bool difficulty = Rules.NeedsReview(a);
-                p.Children.Add(Text("שאלה " + (i + 1) + " · " + (difficulty ? "נושא שכדאי לחזק" : attempt.Practice ? "נענה בהצלחה בתרגול" : "הבנה טובה"), 20, difficulty ? "#7C623D" : "#176F65"));
-                p.Children.Add(Text(a.Parts.Count > 0 ? q.Context : q.Prompt, 18));
-                SourceImages.Add(p, this, topic, exam, q);
-                if (!attempt.Practice) p.Children.Add(Text(Rules.Earned(q, a).ToString("0.##") + " מתוך " + q.Points.ToString("0.##") + " נקודות" + (a.HintUsed ? " · נעשה שימוש ברמז" : ""), 14));
-                if (a.Parts.Count > 0)
-                {
-                    for (int partIndex = 0; partIndex < q.Parts.Count; partIndex++)
-                    {
-                        var part = q.Parts[partIndex]; p.Children.Add(Text(Rules.PartLabel(partIndex) + " · " + part.Prompt, 18));
-                        p.Children.Add(Text("התשובה שלך: " + Rules.PartText(part, a.Parts.Single(pa => pa.PartId == part.Id)), 16));
-                        p.Children.Add(Text("תשובה נכונה: " + part.ExpectedAnswer, 16, "#176F65"));
-                    }
-                }
-                else p.Children.Add(Text("התשובה שלך: " + AnswerText(q, a), 16));
-                if (attempt.Practice && a.Tries.Count > 1)
-                {
-                    p.Children.Add(Text("הדרך לשיפור — " + a.Tries.Count + " ניסיונות", 15));
-                    foreach (var feedback in a.Tries.Take(a.Tries.Count - 1)) p.Children.Add(Text(feedback.Comment, 15, "#596F76"));
-                }
-                p.Children.Add(Text("משוב: " + a.Result.Comment, 16));
-                if (q.Type == "multiple_choice") p.Children.Add(Text("התשובה הנכונה: " + q.Options[q.CorrectOption], 17, "#176F65"));
-                if (a.Parts.Count == 0 && (q.Type != "multiple_choice" || q.ExpectedAnswer.Trim() != q.Options[q.CorrectOption].Trim())) p.Children.Add(Text("התשובה הנכונה וההסבר: " + q.ExpectedAnswer, 17, "#176F65"));
-                if (q.Type == "table") p.Children.Add(Text(String.Join("\n", q.Rows.Select((r, ri) => r + ": " + String.Join(" | ", q.Columns.Select((c, ci) => c + " — " + q.CorrectCells[ri][ci])))), 16));
-                p.Children.Add(Text("מקורות: " + String.Join(" · ", q.SourceReferences), 13, "#596F76")); body.Children.Add(Card(p));
+                var q = exam.Questions[i]; var a = attempt.Answers.Single(x => x.QuestionId == q.Id);
+                body.Children.Add(Card(SummaryQuestion(i + 1, q, a)));
             }
             body.Children.Add(Button("המשך", ShowAfterSummary, true));
         }

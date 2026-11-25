@@ -1,1 +1,60 @@
-{"type":"object","properties":{"Results":{"type":"array","items":{"type":"object","properties":{"QuestionId":{"type":"string"},"Fraction":{"type":"number"},"Comment":{"type":"string"},"AnswerSnapshot":{"type":"string"},"CheckedUtc":{"type":"string"}},"required":["QuestionId","Fraction","Comment","AnswerSnapshot","CheckedUtc"],"additionalProperties":false}}},"required":["Results"],"additionalProperties":false}
+{
+  "type": "object",
+  "properties": {
+    "Results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "QuestionId": {
+            "type": "string"
+          },
+          "Fraction": {
+            "type": "number"
+          },
+          "Comment": {
+            "type": "string"
+          },
+          "AnswerSnapshot": {
+            "type": "string"
+          },
+          "CheckedUtc": {
+            "type": "string"
+          },
+          "ReportCorrections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "PartId": {
+                  "type": "string"
+                },
+                "Note": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "PartId",
+                "Note"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "QuestionId",
+          "Fraction",
+          "Comment",
+          "AnswerSnapshot",
+          "CheckedUtc",
+          "ReportCorrections"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "Results"
+  ],
+  "additionalProperties": false
+}

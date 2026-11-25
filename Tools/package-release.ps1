@@ -25,7 +25,7 @@ foreach ($name in @('Education2k.exe','Education2k.exe.config','VERSION','VERSIO
 }
 $schemaFolder = Join-Path $payloadRoot 'Schemas'
 New-Item -ItemType Directory -Path $schemaFolder | Out-Null
-foreach ($schema in @('exam.json','grade.json','materials.json','ping.json','presentation.json','visuals.json')) {
+foreach ($schema in @('exam.json','grade.json','report.json','materials.json','ping.json','presentation.json','visuals.json')) {
     Copy-Item -LiteralPath (Join-Path $SourceRoot ('Schemas\' + $schema)) -Destination $schemaFolder
 }
 $nativeFolder = Join-Path $payloadRoot 'Native'

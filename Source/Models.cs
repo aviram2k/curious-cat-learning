@@ -107,7 +107,10 @@ namespace Education2k
         public string Comment;
         public string AnswerSnapshot;
         public string CheckedUtc;
+        public int ReportVersion;
+        public List<FeedbackCorrection> ReportCorrections = new List<FeedbackCorrection>();
     }
+    public class FeedbackCorrection { public string PartId, Note; }
     public class GradeResponse { public List<Feedback> Results = new List<Feedback>(); }
     public class Attempt
     {
