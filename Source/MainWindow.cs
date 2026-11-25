@@ -49,6 +49,8 @@ namespace Education2k
         bool scrollToHint;
         Button historyButton;
         Action currentPage;
+        readonly List<Button> headerHelpButtons = new List<Button>();
+        bool homeScreen;
 
         static SolidColorBrush Brush(string hex) { return (SolidColorBrush)new BrushConverter().ConvertFromString(hex); }
         static TextBlock Text(string value, double size = 17, string color = null)
@@ -63,13 +65,35 @@ namespace Education2k
             b.Click += delegate { action(); };
             return b;
         }
-        static Button HeaderButton(string label, Action action, int fontSize = 16)
+        Button HeaderButton(string label, Action action, string explanation, int fontSize = 16)
         {
             var button = Button(label, action);
             button.Height = button.MinHeight = 60;
             button.Padding = new Thickness(6, 8, 6, 8); button.Margin = new Thickness(4, 0, 4, 0);
             button.Content = new TextBlock { Text = label, FontSize = fontSize, LineHeight = 20, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Margin = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
+            var content = new StackPanel();
+            content.Children.Add(new TextBlock { Text = label, FontSize = 16, FontWeight = FontWeights.SemiBold, Foreground = Brush("#176F65"), Margin = new Thickness(0, 0, 0, 7), LineHeight = 24 });
+            content.Children.Add(new TextBlock { Text = explanation, FontSize = 14.5, FontWeight = FontWeights.Normal, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Right, LineHeight = 23 });
+            button.ToolTip = new ToolTip {
+                Content = content, Style = (Style)FindResource("HeaderHelpBubble"), Placement = PlacementMode.Custom,
+                CustomPopupPlacementCallback = delegate(Size popup, Size target, Point offset) {
+                    // RTL popup coordinates begin at the button's right edge.
+                    return new[] { new CustomPopupPlacement(new Point(-(target.Width + popup.Width) / 2, target.Height + 3), PopupPrimaryAxis.Horizontal) };
+                }
+            };
+            ToolTipService.SetInitialShowDelay(button, 650); ToolTipService.SetBetweenShowDelay(button, 250); ToolTipService.SetShowDuration(button, 15000);
+            ToolTipService.SetShowOnDisabled(button, true); ToolTipService.SetIsEnabled(button, false);
+            headerHelpButtons.Add(button);
             return button;
+        }
+        void UpdateHeaderHelp()
+        {
+            bool enabled = homeScreen && operation == null;
+            foreach (var button in headerHelpButtons)
+            {
+                ToolTipService.SetIsEnabled(button, enabled);
+                if (!enabled) ((ToolTip)button.ToolTip).IsOpen = false;
+            }
         }
         static Border Card(UIElement content)
         {
@@ -119,12 +143,12 @@ namespace Education2k
             brandWords.Children.Add(brandName); brandWords.Children.Add(brandSlogan); Grid.SetColumn(brandWords, 2); brand.Children.Add(brandWords);
             header.Children.Add(brand);
             var tools = new UniformGrid { Rows = 1, VerticalAlignment = VerticalAlignment.Center };
-            historyButton = HeaderButton("ההישגים שלי", ShowHistory); historyButton.IsEnabled = false;
+            historyButton = HeaderButton("ההישגים שלי", ShowHistory, "כאן רואים את המבחנים שכבר עשית,\nאת ההתקדמות ואת הנושאים שכדאי לחזק.\nהמידע מופיע לאחר הכניסה בשם תלמיד."); historyButton.IsEnabled = false;
             tools.Children.Add(historyButton);
-            var home = HeaderButton("המסך הראשי", delegate { if (student != null) { Save(); ShowModes(); } else ShowLogin(); }); tools.Children.Add(home);
-            var addExamHelp = HeaderButton("הוסף מבחן חדש", ShowAddExamWizard, 14); tools.Children.Add(addExamHelp);
-            tools.Children.Add(HeaderButton("צור מבחן PDF", ShowPrintExam));
-            var connectButton = HeaderButton("פרטי החיבור", ShowConnection); tools.Children.Add(connectButton);
+            var home = HeaderButton("המסך הראשי", delegate { if (student != null) { Save(); ShowModes(); } else ShowLogin(); }, "חוזרים לבחירת מבחן, תרגול או למידה.\nהעבודה שכבר עשית נשמרת,\nומכאן בוחרים איך להמשיך."); tools.Children.Add(home);
+            var addExamHelp = HeaderButton("הוסף מבחן חדש", ShowAddExamWizard, "מוסיפים נושא חדש לתרגול בתוכנה.\nכותבים תיאור קצר ומצרפים חומרי לימוד.\nבסיום נוצר המבחן הראשון לתלמידים.", 14); tools.Children.Add(addExamHelp);
+            tools.Children.Add(HeaderButton("צור מבחן PDF", ShowPrintExam, "מכינים מבחן שאפשר להדפיס או לשמור.\nמוסיפים שם, כיתה, בית ספר וחומרי לימוד.\nבקובץ יש מקום לתשובות וגם דפי פתרונות."));
+            var connectButton = HeaderButton("פרטי החיבור", ShowConnection, "כאן בודקים את החיבור ל־Codex.\nאפשר להתחבר לחשבון ChatGPT\nולבדוק שוב את החיבור כשמשהו לא עובד."); tools.Children.Add(connectButton);
             Grid.SetColumn(tools, 2); header.Children.Add(tools); layout.Children.Add(header);
             var scroll = new ScrollViewer { Content = body, Padding = new Thickness(32, 12, 32, 30) }; scroller = scroll;
             ScrollWheelRouting.Enable(scroll);
@@ -192,8 +216,9 @@ namespace Education2k
                 await CheckConnection();
             };
         }
-        void Page(string title, string subtitle, Action render)
+        void Page(string title, string subtitle, Action render, bool showHeaderHelp = false)
         {
+            homeScreen = showHeaderHelp; UpdateHeaderHelp();
             wizardVisible = false;
             printVisible = false;
             currentPage = render; inQuestion = false; notice.Visibility = Visibility.Collapsed; body.Children.Clear();
@@ -224,6 +249,7 @@ namespace Education2k
         {
             if (operation != null) return;
             operation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+            UpdateHeaderHelp();
             Guid session = workSession = Guid.NewGuid(); workState = new WorkState(label, goal, store.Root, DateTime.UtcNow);
             waitingView.Begin(workState); busy.Visibility = Visibility.Visible;
             using (WorkFlow.Use(new WorkSink(update => ReportWork(session, update))))
@@ -232,7 +258,7 @@ namespace Education2k
                 catch (MaterialDecisionDeclinedException) { WorkFlow.Activity("נבחרה חזרה ללא יצירה חדשה."); if (student != null) ShowModes(); else ShowLogin(); }
                 catch (OperationCanceledException) { WorkFlow.Activity("הפעולה בוטלה. קבצים שנשמרו לפני הביטול נשארים במחשב."); }
                 catch (Exception e) { WorkFlow.Activity("הפעולה נעצרה עקב תקלה. מוצגים פרטי התקלה."); Error(e); }
-                finally { busy.Visibility = Visibility.Collapsed; waitingView.End(); workState.Dispose(); workState = null; operation.Dispose(); operation = null; }
+                finally { busy.Visibility = Visibility.Collapsed; waitingView.End(); workState.Dispose(); workState = null; operation.Dispose(); operation = null; UpdateHeaderHelp(); }
             }
         }
         void Save()
@@ -264,7 +290,7 @@ namespace Education2k
         }
         void ShowLogin()
         {
-            Page("נעים ללמוד יחד", "לפני שמתחילים, איך קוראים לך?", ShowLogin);
+            Page("נעים ללמוד יחד", "לפני שמתחילים, איך קוראים לך?", ShowLogin, true);
             var p = Panel(); p.MaxWidth = 560; p.HorizontalAlignment = HorizontalAlignment.Stretch;
             var logo = new Image { Source = appLogo, Width = 144, Height = 144, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Center,
                 FlowDirection = FlowDirection.LeftToRight, Margin = new Thickness(0, 0, 0, 12), IsHitTestVisible = false };
@@ -283,7 +309,7 @@ namespace Education2k
         }
         void ShowModes()
         {
-            Page("שלום " + student.FirstName + ", מה נלמד היום?", "יש מקום לחשוב, לנסות ולגלות. נתקדם צעד אחר צעד.", ShowModes);
+            Page("שלום " + student.FirstName + ", מה נלמד היום?", "יש מקום לחשוב, לנסות ולגלות. נתקדם צעד אחר צעד.", ShowModes, true);
             var examPanel = Panel(); examPanel.Children.Add(Text("מבחנים ותרגול", 25)); examPanel.Children.Add(Text("בוחרים נושא ומתנסים במבחן עצמאי או בתרגול עם עזרה ומשוב."));
             examPanel.Children.Add(Button("לבחירת נושא", ShowTopics, true)); body.Children.Add(Card(examPanel));
             var learning = Panel(); learning.Children.Add(Text("למידה", 25)); learning.Children.Add(Text("כאן יהיה מרחב הלמידה שלך.")); learning.Children.Add(Button("למצב למידה", ShowLearning)); body.Children.Add(Card(learning));

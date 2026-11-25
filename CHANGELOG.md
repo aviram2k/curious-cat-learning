@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.6 - 2026-11-25
+
+- Hebrew speech-bubble explanations for the five header buttons, shown after a
+  short hover on the login/home screens only and hidden during other activities.
+
 ## 0.1.5 - 2026-11-25
 
 - Header buttons share the available width in one row, including at the minimum
